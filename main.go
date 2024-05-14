@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	port := flag.String("port", ":8090", "port for server to listen on")
+	port := flag.String("port", ":8091", "port for server to listen on")
 
 	currentTime := time.Now()
 
