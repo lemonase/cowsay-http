@@ -19,8 +19,22 @@ go build -o cowsay-http
 
 ### Docker
 
+#### Running
+
 ```
-docker run -p 8091:8091 jamesdixon/cowsay-http
+docker run -p 8091:8091 jamesdixon/cowsay-http:latest-amd64
+```
+
+#### Building
+
+```
+docker buildx build --platform linux/amd64 -t jamesdixon/cowsay-http:latest-amd64 .
+```
+
+#### Pushing
+
+```
+docker push jamesdixon/cowsay-http:latest-amd64
 ```
 
 ## HTTP API
