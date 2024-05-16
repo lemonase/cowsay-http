@@ -88,7 +88,7 @@ func respCowsay(w http.ResponseWriter, req *http.Request) {
 	}
 
 	cowsayString := params.Get("s")
-	// TODO: allow url encode spaces in a secure way
+	// TODO (refactor): allow url encode spaces in a secure way
 	if !validCommand(cowsayString) {
 		w.WriteHeader(400)
 		w.Write([]byte("400 Error - Bad input for s. Parameter must be alphanumeric!\n"))
@@ -125,6 +125,7 @@ func respFortune(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "%s\n\n", time.Now().String())
 	}
 
+	// TODO (refactor): move these to cowsay function
 	cowStatusOps := map[string]string{
 		"borg":     "-b",
 		"dead":     "-d",
@@ -143,6 +144,7 @@ func respFortune(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	// TODO (refactor): move these to cowsay function as well
 	if _, ok := params["cowsay"]; ok {
 		if _, ok := params["randomCow"]; ok {
 			fmt.Fprintf(w, "%s\n", execFortune(true, getRandomCowfile(), cowOpts))
@@ -178,14 +180,12 @@ func checkCowfile(input string) bool {
 			return true
 		}
 	}
-
 	return false
 }
 
 func getRandomCowfile() string {
 	cowfiles := getCowfiles()
 	index := rand.Intn(len(cowfiles))
-
 	return cowfiles[index]
 }
 
@@ -241,6 +241,7 @@ func execFortune(doCowsay bool, cowfile string, cowOpts string) string {
 		}
 		return string(fortuneOutput)
 	} else {
+		// TODO: pass fortune string to cowsay function within go instead of pipes.
 		cowsayCmd := exec.Command("cowsay", cowOpts)
 		if cowfile != "" {
 			cowsayCmd = exec.Command("cowsay", "-f", cowfile, cowOpts)
