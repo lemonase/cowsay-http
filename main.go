@@ -8,7 +8,9 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -73,11 +75,11 @@ GET /listCows -- Returns a list of available cows
 func respFortune(w http.ResponseWriter, req *http.Request) {
 	parsedUrl, err := url.Parse(req.URL.String())
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintln(os.Stderr, "error parsing URL string: ", err)
 	}
 	params, err := url.ParseQuery(parsedUrl.RawQuery)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintln(os.Stderr, "error parsing query parameters: ", err)
 	}
 
 	if _, ok := params["time"]; ok {
@@ -106,6 +108,19 @@ func respFortune(w http.ResponseWriter, req *http.Request) {
 		if _, ok := params["randomCow"]; ok {
 			fmt.Fprintf(w, "%s\n", execFortune(true, getRandomCowfile(), cowOpts))
 		} else {
+			cowfile := params.Get("cowfile")
+			if !validCommand(cowfile) {
+				w.WriteHeader(400)
+				w.Write([]byte("400 Error - Bad input for cowfile. Parameter must be alphanumeric!\n"))
+				return
+			}
+
+			if !checkCowfile(cowfile) {
+				w.WriteHeader(404)
+				w.Write([]byte("404 Error - Cowfile not found! Check /listCows for a list of cowfiles!\n"))
+				return
+			}
+
 			fmt.Fprintf(w, "%s\n", execFortune(true, params.Get("cowfile"), cowOpts))
 		}
 	} else {
@@ -116,6 +131,16 @@ func respFortune(w http.ResponseWriter, req *http.Request) {
 func respListCowfiles(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "%s\n\n", "avaliable cowfiles:")
 	fmt.Fprintf(w, "%v\n", getCowfiles())
+}
+
+func checkCowfile(input string) bool {
+	for _, file := range getCowfiles() {
+		if input == file {
+			return true
+		}
+	}
+
+	return false
 }
 
 func getRandomCowfile() string {
@@ -208,4 +233,10 @@ func execFortune(doCowsay bool, cowfile string, cowOpts string) string {
 
 		return string(cowsayResult)
 	}
+}
+
+func validCommand(input string) bool {
+	// Only allow alphanumeric commands
+	allowedChars := regexp.MustCompile(`^[a-zA-Z0-9\\s]*$`)
+	return allowedChars.MatchString(input)
 }
