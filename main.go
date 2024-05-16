@@ -22,6 +22,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", respHome)
+	mux.HandleFunc("/cowsay", respCowsay)
 	mux.HandleFunc("/fortune", respFortune)
 	mux.HandleFunc("/listCows", respListCowfiles)
 
@@ -50,6 +51,11 @@ func respHome(w http.ResponseWriter, req *http.Request) {
 
 GET / -- Returns this page
 
+GET /cowsay
+  URL PARAMS
+    randomCow bool -- Toggle random cowfile
+    cowfile string -- Specify a cowfile
+    s string -- Thing to say
 
 GET /fortune -- Returns a fortune with an optional pipe to cowsay
   URL PARAMS
@@ -66,10 +72,43 @@ GET /fortune -- Returns a fortune with an optional pipe to cowsay
       youthful bool
     time bool -- Print time in response
 
-
 GET /listCows -- Returns a list of available cows
 
   `)
+}
+
+func respCowsay(w http.ResponseWriter, req *http.Request) {
+	parsedUrl, err := url.Parse(req.URL.String())
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error parsing URL string: ", err)
+	}
+	params, err := url.ParseQuery(parsedUrl.RawQuery)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error parsing query parameters: ", err)
+	}
+
+	cowsayString := params.Get("s")
+	// TODO: allow url encode spaces in a secure way
+	if !validCommand(cowsayString) {
+		w.WriteHeader(400)
+		w.Write([]byte("400 Error - Bad input for s. Parameter must be alphanumeric!\n"))
+		return
+	}
+
+	cowfile := "default"
+	if !validCommand(cowfile) {
+		w.WriteHeader(400)
+		w.Write([]byte("400 Error - Bad input for cowfile. Parameter must be alphanumeric!\n"))
+		return
+	}
+	if _, ok := params["cowfile"]; ok {
+		cowfile = params.Get("cowfile")
+	}
+	if _, ok := params["randomCow"]; ok {
+		cowfile = getRandomCowfile()
+	}
+
+	fmt.Fprintf(w, "%s\n", execCowsay(cowsayString, cowfile))
 }
 
 func respFortune(w http.ResponseWriter, req *http.Request) {
@@ -235,8 +274,16 @@ func execFortune(doCowsay bool, cowfile string, cowOpts string) string {
 	}
 }
 
+func execCowsay(say string, cowfile string) string {
+	out, err := exec.Command("cowsay", "-f", cowfile, say).Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return string(out)
+}
+
 func validCommand(input string) bool {
 	// Only allow alphanumeric commands
-	allowedChars := regexp.MustCompile(`^[a-zA-Z0-9\\s]*$`)
+	allowedChars := regexp.MustCompile(`^[a-zA-Z0-9\\s\-\_]*$`)
 	return allowedChars.MatchString(input)
 }
