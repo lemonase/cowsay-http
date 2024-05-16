@@ -23,7 +23,7 @@ go build -o cowsay-http
 docker run -p 8091:8091 jamesdixon/cowsay-http
 ```
 
-## API
+## HTTP API
 
 ```
  ________________________________ 
@@ -36,6 +36,11 @@ docker run -p 8091:8091 jamesdixon/cowsay-http
 
 GET / -- Returns this page
 
+GET /cowsay
+  URL PARAMS
+    randomCow bool -- Toggle random cowfile
+    cowfile string -- Specify a cowfile
+    s string -- Thing to say
 
 GET /fortune -- Returns a fortune with an optional pipe to cowsay
   URL PARAMS
@@ -51,7 +56,6 @@ GET /fortune -- Returns a fortune with an optional pipe to cowsay
       wired bool
       youthful bool
     time bool -- Print time in response
-
 
 GET /listCows -- Returns a list of available cows
 ```
