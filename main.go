@@ -22,62 +22,40 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", respHome)
-	mux.HandleFunc("/cowsay", respCowsay)
-	mux.HandleFunc("/fortune", respFortune)
-	mux.HandleFunc("/listCows", respListCowfiles)
+	mux.HandleFunc("/cs", cowsayRes)
+	mux.HandleFunc("/cowsay", cowsayRes)
 
-	fmt.Println(currentTime.String())
-	fmt.Println(`
- _________________________________ 
+	fmt.Println(`_________________________________ 
 < Starting Cowsay HTTP API Server >
  --------------------------------- 
        \   ,__,
         \  (oo)____
            (__)    )\
               ||--|| *`)
+	fmt.Println(currentTime.String())
 	fmt.Println("Listening on port:", *port)
 	log.Fatal(http.ListenAndServe(*port, mux))
 }
 
 func respHome(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "%s\n", `
- ________________________________ 
-< Hi, Welcome to Cowsay HTTP API >
- -------------------------------- 
-       \   ,__,
-        \  (oo)____
-           (__)    )\
-              ||--|| *
-
 GET / -- Returns this page
 
-GET /cowsay
+GET /cowsay -- Does cowsay (customize with URL parameters)
+GET /cs
   URL PARAMS
-    randomCow bool -- Toggle random cowfile
-    cowfile string -- Specify a cowfile
-    s string -- Thing to say
-
-GET /fortune -- Returns a fortune with an optional pipe to cowsay
-  URL PARAMS
-    cowsay bool -- Toggle cowsay
-      randomCow bool -- Toggle random cowfile
-      cowfile string -- Specify a cowfile
-      borg bool
-      dead bool
-      greedy bool
-      paranoia bool
-      stoned bool
-      tired bool
-      wired bool
-      youthful bool
-    time bool -- Print time in response
-
-GET /listCows -- Returns a list of available cows
-
+    s string -- Thing to say (defaults to fortune command)
+    cf string -- Specify a cowfile (see /list or add l param to request)
+    r bool -- Pick a random cowfile
+    l bool -- List all cowfiles available
   `)
 }
 
-func respCowsay(w http.ResponseWriter, req *http.Request) {
+func cowsayRes(w http.ResponseWriter, req *http.Request) {
+	var say string
+	var cowsayFlags string
+	var cowfile string
+
 	parsedUrl, err := url.Parse(req.URL.String())
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "error parsing URL string: ", err)
@@ -87,91 +65,84 @@ func respCowsay(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintln(os.Stderr, "error parsing query parameters: ", err)
 	}
 
-	cowsayString := params.Get("s")
-	// TODO (refactor): allow url encode spaces in a secure way
-	if !validCommand(cowsayString) {
-		w.WriteHeader(400)
-		w.Write([]byte("400 Error - Bad input for s. Parameter must be alphanumeric!\n"))
+	if _, ok := params["l"]; ok {
+		fmt.Fprintf(w, "%s\n\n", "avaliable cowfiles:")
+		for index, file := range getCowfiles() {
+			fmt.Fprintf(w, "%d: %s\n", index, file)
+		}
 		return
 	}
 
-	cowfile := "default"
-	if !validCommand(cowfile) {
-		w.WriteHeader(400)
-		w.Write([]byte("400 Error - Bad input for cowfile. Parameter must be alphanumeric!\n"))
-		return
+	if _, ok := params["s"]; ok {
+		say = url.QueryEscape(params.Get("s"))
+	} else {
+		fortuneOut, err := exec.Command("fortune").Output()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error running fortune command %s\n", err)
+		}
+		say = string(fortuneOut)
 	}
-	if _, ok := params["cowfile"]; ok {
-		cowfile = params.Get("cowfile")
+
+	if _, ok := params["b"]; ok {
+		cowsayFlags += "-b "
 	}
-	if _, ok := params["randomCow"]; ok {
+	if _, ok := params["d"]; ok {
+		cowsayFlags += "-d "
+	}
+	if _, ok := params["g"]; ok {
+		cowsayFlags += "-g "
+	}
+	if _, ok := params["p"]; ok {
+		cowsayFlags += "-p "
+	}
+	if _, ok := params["st"]; ok {
+		cowsayFlags += "-s "
+	}
+	if _, ok := params["t"]; ok {
+		cowsayFlags += "-t "
+	}
+	if _, ok := params["w"]; ok {
+		cowsayFlags += "-w "
+	}
+	if _, ok := params["y"]; ok {
+		cowsayFlags += "-y "
+	}
+
+	cowfile = "default"
+	if _, ok := params["cf"]; ok {
+		cowfile = params.Get("cf")
+	}
+	if _, ok := params["r"]; ok {
 		cowfile = getRandomCowfile()
 	}
 
-	fmt.Fprintf(w, "%s\n", execCowsay(cowsayString, cowfile))
-}
+	if !validCommand(cowfile) {
+		http.Error(w, "400 Error - Bad input for cowfile. Parameter must be alphanumeric!\n", http.StatusBadRequest)
+	}
+	if !checkCowfile(cowfile) {
+		http.Error(w, "404 Error - Cowfile not found!\n", http.StatusNotFound)
+	}
 
-func respFortune(w http.ResponseWriter, req *http.Request) {
-	parsedUrl, err := url.Parse(req.URL.String())
+	unEscSay, err := url.QueryUnescape(say)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error parsing URL string: ", err)
-	}
-	params, err := url.ParseQuery(parsedUrl.RawQuery)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "error parsing query parameters: ", err)
+		fmt.Fprintln(os.Stderr, "error decoding query for say param", err)
 	}
 
-	if _, ok := params["time"]; ok {
-		fmt.Fprintf(w, "%s\n\n", time.Now().String())
-	}
-
-	// TODO (refactor): move these to cowsay function
-	cowStatusOps := map[string]string{
-		"borg":     "-b",
-		"dead":     "-d",
-		"greedy":   "-g",
-		"paranoia": "-p",
-		"stoned":   "-s",
-		"tired":    "-t",
-		"wired":    "-w",
-		"youthful": "-y",
-	}
-	var cowOpts string
-
-	for status, opt := range cowStatusOps {
-		if params.Has(status) {
-			cowOpts = opt + " "
-		}
-	}
-
-	// TODO (refactor): move these to cowsay function as well
-	if _, ok := params["cowsay"]; ok {
-		if _, ok := params["randomCow"]; ok {
-			fmt.Fprintf(w, "%s\n", execFortune(true, getRandomCowfile(), cowOpts))
-		} else {
-			cowfile := params.Get("cowfile")
-			if !validCommand(cowfile) {
-				w.WriteHeader(400)
-				w.Write([]byte("400 Error - Bad input for cowfile. Parameter must be alphanumeric!\n"))
-				return
-			}
-
-			if !checkCowfile(cowfile) {
-				w.WriteHeader(404)
-				w.Write([]byte("404 Error - Cowfile not found! Check /listCows for a list of cowfiles!\n"))
-				return
-			}
-
-			fmt.Fprintf(w, "%s\n", execFortune(true, params.Get("cowfile"), cowOpts))
+	var cowsayOut []byte
+	if cowsayFlags == "" {
+		cowsayOut, err = exec.Command("cowsay", "-f", cowfile, unEscSay).Output()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error running command %s\n", err)
+			http.Error(w, fmt.Sprintf("error running command %s", err), http.StatusInternalServerError)
 		}
 	} else {
-		fmt.Fprintf(w, string(execFortune(false, "default", cowOpts)))
+		cowsayOut, err = exec.Command("cowsay", "-f", cowfile, cowsayFlags, unEscSay).Output()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error running command %s\n", err)
+			http.Error(w, fmt.Sprintf("error running command %s", err), http.StatusInternalServerError)
+		}
 	}
-}
-
-func respListCowfiles(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, "%s\n\n", "avaliable cowfiles:")
-	fmt.Fprintf(w, "%v\n", getCowfiles())
+	fmt.Fprintf(w, "%s\n", cowsayOut)
 }
 
 func checkCowfile(input string) bool {
@@ -231,60 +202,8 @@ func getCowfiles() []string {
 	return strings.Split(allFiles, " ")
 }
 
-func execFortune(doCowsay bool, cowfile string, cowOpts string) string {
-	fortuneCmd := exec.Command("fortune")
-
-	if !doCowsay {
-		fortuneOutput, err := fortuneCmd.Output()
-		if err != nil {
-			log.Fatal(err)
-		}
-		return string(fortuneOutput)
-	} else {
-		// TODO: pass fortune string to cowsay function within go instead of pipes.
-		cowsayCmd := exec.Command("cowsay", cowOpts)
-		if cowfile != "" {
-			cowsayCmd = exec.Command("cowsay", "-f", cowfile, cowOpts)
-		}
-
-		fortuneOut, err := fortuneCmd.StdoutPipe()
-		if err != nil {
-			log.Fatal(err)
-		}
-		if err := fortuneCmd.Start(); err != nil {
-			fmt.Println("error starting fortune", err)
-		}
-		cowsayCmd.Stdin = fortuneOut
-		cowsayOut, err := cowsayCmd.StdoutPipe()
-		if err != nil {
-			fmt.Println("error piping fortune to cowsay", err)
-		}
-		if err := cowsayCmd.Start(); err != nil {
-			fmt.Println("error starting cowsay", err)
-		}
-
-		defer fortuneCmd.Wait()
-		defer cowsayCmd.Wait()
-
-		cowsayResult, err := io.ReadAll(cowsayOut)
-		if err != nil {
-			fmt.Printf("Error reading command output: %v\n", err)
-		}
-
-		return string(cowsayResult)
-	}
-}
-
-func execCowsay(say string, cowfile string) string {
-	out, err := exec.Command("cowsay", "-f", cowfile, say).Output()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return string(out)
-}
-
 func validCommand(input string) bool {
 	// Only allow alphanumeric commands
-	allowedChars := regexp.MustCompile(`^[a-zA-Z0-9\\s\-\_]*$`)
+	allowedChars := regexp.MustCompile(`^[a-zA-Z0-9\\s\-\_\.]*$`)
 	return allowedChars.MatchString(input)
 }

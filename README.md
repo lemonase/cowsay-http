@@ -40,38 +40,15 @@ docker push jamesdixon/cowsay-http:latest-amd64
 ## HTTP API
 
 ```
- ________________________________ 
-< Hi, Welcome to Cowsay HTTP API >
- -------------------------------- 
-       \   ,__,
-        \  (oo)____
-           (__)    )\
-              ||--|| *
-
 GET / -- Returns this page
 
-GET /cowsay
+GET /cowsay -- Does cowsay (customize with URL parameters)
+GET /cs
   URL PARAMS
-    randomCow bool -- Toggle random cowfile
-    cowfile string -- Specify a cowfile
-    s string -- Thing to say
-
-GET /fortune -- Returns a fortune with an optional pipe to cowsay
-  URL PARAMS
-    cowsay bool -- Toggle cowsay
-      randomCow bool -- Toggle random cowfile
-      cowfile string -- Specify a cowfile
-      borg bool
-      dead bool
-      greedy bool
-      paranoia bool
-      stoned bool
-      tired bool
-      wired bool
-      youthful bool
-    time bool -- Print time in response
-
-GET /listCows -- Returns a list of available cows
+    s string -- Thing to say (defaults to fortune command)
+    cf string -- Specify a cowfile (see /list or add l param to request)
+    r bool -- Pick a random cowfile
+    l bool -- List all cowfiles available
 ```
 
 ## Examples
@@ -79,11 +56,23 @@ GET /listCows -- Returns a list of available cows
 Equivalent to `fortune | cowsay`
 
 ```
-curl 'http://localhost:8091/fortune?cowsay'
+curl 'http://localhost:8091/cowsay'
 ```
 
 With a random cow
 
 ```
-curl 'http://localhost:8091/fortune?cowsay&randomCow'
+curl 'http://localhost:8091/cowsay?r'
+```
+
+With your own text
+
+```
+curl http://localhost:8091/cs?r&s=yoohoo
+```
+
+You will have to url encode characters like spaces (browsers do this automatically)
+
+```
+http://localhost:8091/cs?r&s=give%20me%20some%20space
 ```
