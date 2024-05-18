@@ -8,8 +8,6 @@ COPY *.go ./
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /cowsay-http
 
-EXPOSE 8091
-
 CMD ["/cowsay-http"]
 
 # Deploy the application binary into a lean image
@@ -25,7 +23,5 @@ EOF
 WORKDIR /
 
 COPY --from=build-stage /cowsay-http /cowsay-http
-
-EXPOSE 8091
 
 ENTRYPOINT ["/cowsay-http"]
