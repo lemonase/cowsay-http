@@ -16,7 +16,12 @@ import (
 )
 
 func main() {
-	port := flag.String("port", ":8091", "port for server to listen on")
+	defaultPort := "8091"
+	if portEnv, ok := os.LookupEnv("PORT"); ok {
+		defaultPort = portEnv
+	}
+	port := flag.String("port", defaultPort, "port for server to listen on")
+	flag.Parse()
 
 	currentTime := time.Now()
 
@@ -33,8 +38,8 @@ func main() {
            (__)    )\
               ||--|| *`)
 	fmt.Println(currentTime.String())
-	fmt.Println("Listening on port:", *port)
-	log.Fatal(http.ListenAndServe(*port, mux))
+	fmt.Println("Listening on port", ":"+*port)
+	log.Fatal(http.ListenAndServe(":"+*port, mux))
 }
 
 func respHome(w http.ResponseWriter, req *http.Request) {
