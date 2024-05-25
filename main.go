@@ -15,45 +15,67 @@ import (
 	"time"
 )
 
+var (
+	defaultPort = "8091"
+	defaultIp   = ""
+	startupMsg  = `
+ _________________________________ 
+< Starting Cowsay HTTP API Server >
+ --------------------------------- 
+       \   ,__,
+        \  (oo)____
+           (__)    )\
+              ||--|| *
+`
+)
+
 func main() {
-	defaultPort := "8091"
+	if ipEnv, ok := os.LookupEnv("IP"); ok {
+		defaultIp = ipEnv
+	}
 	if portEnv, ok := os.LookupEnv("PORT"); ok {
 		defaultPort = portEnv
 	}
+	ip := flag.String("ip", defaultIp, "ip for server to listen on (default is all)")
 	port := flag.String("port", defaultPort, "port for server to listen on")
+
 	flag.Parse()
 
 	currentTime := time.Now()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", respHome)
-	mux.HandleFunc("/cs", cowsayRes)
 	mux.HandleFunc("/cowsay", cowsayRes)
+	mux.HandleFunc("/say", cowsayRes)
+	mux.HandleFunc("/cs", cowsayRes)
 
-	fmt.Println(`_________________________________ 
-< Starting Cowsay HTTP API Server >
- --------------------------------- 
-       \   ,__,
-        \  (oo)____
-           (__)    )\
-              ||--|| *`)
+	fmt.Println(startupMsg)
 	fmt.Println(currentTime.String())
-	fmt.Println("Listening on port", ":"+*port)
-	log.Fatal(http.ListenAndServe(":"+*port, mux))
+	fmt.Println("Listening on port", *ip+":"+*port)
+	log.Fatal(http.ListenAndServe(*ip+":"+*port, mux))
 }
 
 func respHome(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, "%s\n", `
-GET / -- Returns this page
+	homeHelpMsg := `Welcome to the cowsay HTTP API!
 
-GET /cowsay -- Does cowsay (customize with URL parameters)
-GET /cs
+GET /* -- This page (you are here!)
+
+GET /cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters)
   URL PARAMS
     s string -- Thing to say (defaults to fortune command)
-    cf string -- Specify a cowfile (see /list or add l param to request)
+    cf string -- Specify a cowfile (add l param to list available cowfiles)
     r bool -- Pick a random cowfile
     l bool -- List all cowfiles available
-  `)
+
+ALIASES for /cowsay include
+  /say
+  /cs
+
+EXAMPLES:
+  cows.rest/cowsay?r
+  cows.rest/cs?s=moo%20world
+  `
+	fmt.Fprintf(w, "%s\n", homeHelpMsg)
 }
 
 func cowsayRes(w http.ResponseWriter, req *http.Request) {
