@@ -7,8 +7,6 @@ like a web browser or curl.
 ## HTTP API
 
 ```
-Welcome to the cowsay HTTP API!
-
 GET /* -- This page (you are here!)
 
 GET /cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters)
@@ -26,6 +24,13 @@ EXAMPLES:
   cows.rest/cowsay?r
   cows.rest/cs?s=moo%20world
 
+TIP:
+  # URL escape strings with perl or python:
+  perl -nE 'use URI::Escape; chomp $_; print(uri_escape($_))' <<< "some long random text"
+  python -c 'import urllib.parse; print(urllib.parse.quote(input()))' <<< "some long random text"
+
+  curl "cows.rest/cs?r&s=$(<url encoded string>)"
+
 GITHUB:
 https://github.com/lemonase/cowsay-http
 ```
@@ -35,7 +40,13 @@ for the cheap so we are running with that.
 
 ## Running
 
-Clone this repo and run locally with Go, or use docker
+You can use Docker or run and build locally with Go
+
+### Docker
+
+```
+docker run -p 8091:8091 ghcr.io/lemonase/cowsay-http:master
+```
 
 ### Go
 
@@ -46,18 +57,11 @@ go build -o cowsay-http
 ./cowsay-http
 ```
 
-### Docker
-
-#### Running
-
-```
-docker run -p 8091:8091 jamesdixon/cowsay-http:latest-amd64
-```
-
 ## Acknowledgements
 
 cow{say,think} version 3.03, (c) 1999 Tony Monroe
 GPLv3 / Artistic License
+
 
 ## Misc
 
@@ -68,5 +72,5 @@ Github has this 'cowsay' like API:
 Other cowsay projects
 
 - [apjanke's fork of the classic cowsay project](https://github.com/cowsay-org/cowsay)
-- [Neo-cowsay](https://github.com/Code-Hex/Neo-cowsay)
 - [cowsay-files](https://github.com/paulkaefer/cowsay-files)
+- [Neo-cowsay](https://github.com/Code-Hex/Neo-cowsay)

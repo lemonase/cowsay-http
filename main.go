@@ -57,7 +57,6 @@ func main() {
 
 func respHome(w http.ResponseWriter, req *http.Request) {
 	homeHelpMsg := `Welcome to the cowsay HTTP API!
-
 GET /* -- This page (you are here!)
 
 GET /cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters)
@@ -74,6 +73,13 @@ ALIASES for /cowsay include
 EXAMPLES:
   cows.rest/cowsay?r
   cows.rest/cs?s=moo%20world
+
+TIP:
+  # URL escape strings with perl or python:
+  perl -nE 'use URI::Escape; chomp $_; print(uri_escape($_))' <<< "some long random text"
+  python -c 'import urllib.parse; print(urllib.parse.quote(input()))' <<< "some long random text"
+
+  curl "cows.rest/cs?r&s=$(<url encoded string>)"
 
 GITHUB:
 https://github.com/lemonase/cowsay-http
