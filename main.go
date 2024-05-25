@@ -74,6 +74,9 @@ ALIASES for /cowsay include
 EXAMPLES:
   cows.rest/cowsay?r
   cows.rest/cs?s=moo%20world
+
+GITHUB:
+https://github.com/lemonase/cowsay-http
   `
 	fmt.Fprintf(w, "%s\n", homeHelpMsg)
 }

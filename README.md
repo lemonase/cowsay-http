@@ -1,45 +1,37 @@
 # cowsay-http
 
 This is a HTTP server that wraps around the classic `fortune` and `cowsay`
-commands and exposes them as an HTTP API that can be accessed via browser
-or curl.
-
-It is not technically a REST API, but I did get the domain for `cows.rest`
-so we are running with that.
+commands and exposes them as an HTTP API that can be accessed via HTTP clients
+like a web browser or curl.
 
 ## HTTP API
 
 ```
-GET / -- Returns this page
+Welcome to the cowsay HTTP API!
 
-GET /cowsay -- Does cowsay (customize with URL parameters)
-GET /cs
+GET /* -- This page (you are here!)
+
+GET /cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters)
   URL PARAMS
     s string -- Thing to say (defaults to fortune command)
-    cf string -- Specify a cowfile (see /list or add l param to request)
+    cf string -- Specify a cowfile (add l param to list available cowfiles)
     r bool -- Pick a random cowfile
     l bool -- List all cowfiles available
+
+ALIASES for /cowsay include
+  /say
+  /cs
+
+EXAMPLES:
+  cows.rest/cowsay?r
+  cows.rest/cs?s=moo%20world
+
+GITHUB:
+https://github.com/lemonase/cowsay-http
 ```
 
-## Examples
-
-Get `fortune | cowsay`
-
-```
-curl cows.rest/cs
-```
-
-With random cowfile
-
-```
-curl cows.rest/cs?r
-```
-
-With text
-
-```
-curl cows.rest/cs?r&s=hi%20fren
-```
+It is not technically a REST API, but I already registered the domain `cows.rest`
+for the cheap so we are running with that.
 
 ## Running
 
