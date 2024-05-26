@@ -152,23 +152,17 @@ func cowsayRes(w http.ResponseWriter, req *http.Request) {
 		cowfile = getRandomCowfile()
 	}
 
-	if !validText(cowfile) {
-		http.Error(w, "400 Error - Bad input for cowfile. Parameter must be alphanumeric!\n", http.StatusBadRequest)
-		return
-	}
 	if !checkCowfile(cowfile) {
 		http.Error(w, "404 Error - Cowfile not found!\n", http.StatusNotFound)
 		return
 	}
+	cowfile = sanitizeText(cowfile)
 
 	unEscSay, err := url.QueryUnescape(say)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "error decoding query for say param", err)
 	}
-	if !validText(unEscSay) {
-		http.Error(w, "400 Error - Bad input for say param. Parameter must be alphanumeric!\n", http.StatusBadRequest)
-		return
-	}
+	unEscSay = sanitizeText(unEscSay)
 
 	var cowsayOut []byte
 	if cowsayFlags == "" {
@@ -244,8 +238,9 @@ func getCowfiles() []string {
 	return strings.Split(allFiles, " ")
 }
 
-func validText(input string) bool {
+func sanitizeText(input string) string {
 	// Do not allow these characters for security purposes (we run shell commands)
 	badChars := regexp.MustCompile(`\&|\||\;`)
-	return !badChars.MatchString(input)
+
+	return badChars.ReplaceAllString(input, "")
 }
