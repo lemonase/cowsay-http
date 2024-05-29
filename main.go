@@ -15,63 +15,52 @@ import (
 	"time"
 )
 
-var (
-	defaultPort = "8091"
-	defaultIp   = ""
-	startupMsg  = `
- _________________________________ 
-< Starting Cowsay HTTP API Server >
- --------------------------------- 
-       \   ,__,
-        \  (oo)____
-           (__)    )\
-              ||--|| *
-`
-)
+// Switches that change the appearence of the cow is some way
+var cowsaySwitches = []string{
+	"b", // bored
+	"d", // dead
+	"g", // greedy
+	"p", // paranoia
+	"s", // st0ned
+	"t", // tired
+	"w", // wired (not tired)
+	"y", // youthful
+}
 
-func main() {
-	if ipEnv, ok := os.LookupEnv("IP"); ok {
-		defaultIp = ipEnv
-	}
-	if portEnv, ok := os.LookupEnv("PORT"); ok {
-		defaultPort = portEnv
-	}
-	ip := flag.String("ip", defaultIp, "ip for server to listen on (default is all)")
-	port := flag.String("port", defaultPort, "port for server to listen on")
-
-	flag.Parse()
-
-	currentTime := time.Now()
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", respHome)
-	mux.HandleFunc("/cowsay", cowsayRes)
-	mux.HandleFunc("/say", cowsayRes)
-	mux.HandleFunc("/cs", cowsayRes)
-
-	fmt.Println(startupMsg)
-	fmt.Println(currentTime.String())
-	fmt.Println("Listening on port", *ip+":"+*port)
-	log.Fatal(http.ListenAndServe(*ip+":"+*port, mux))
+type cowsayOpts struct {
+	flags   string
+	cowfile string
+	say     string
 }
 
 func respHome(w http.ResponseWriter, req *http.Request) {
 	homeHelpMsg := `Welcome to the cowsay HTTP API!
-GET /* -- This page (you are here!)
+GET / -- This page (you are here)
 
 GET /cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters)
   URL PARAMS
-    s string -- Thing to say (defaults to fortune command)
-    cf string -- Specify a cowfile (add l param to list available cowfiles)
-    r bool -- Pick a random cowfile
-    l bool -- List all cowfiles available
+    s string  // Thing to say (defaults to fortune command)
+    cf string // Specify a cowfile (add l param to list available cowfiles)
+    r bool    // Pick a random cowfile
+    l bool    // List all cowfiles available
+    // Additional cows flags
+    b bool    // Cow appears bored
+    d bool    // Cow appears dead
+    g bool    // Cow appears greedy
+    p bool    // Cow appears paranoia
+    s bool    // Cow appears st0ned
+    t bool    // Cow appears tired
+    w bool    // Cow appears wired (not tired)
+    y bool    // Cow appears youthful
 
 ALIASES for /cowsay include
   /say
   /cs
 
 EXAMPLES:
+  cows.rest/cowsay
   cows.rest/cowsay?r
+  cows.rest/cowsay?d&s=0xDEADBEEF
   cows.rest/cs?s=moo%20world
 
 TIP:
@@ -88,10 +77,9 @@ https://github.com/lemonase/cowsay-http
 }
 
 func cowsayRes(w http.ResponseWriter, req *http.Request) {
-	var say string
-	var cowsayFlags string
-	var cowfile string
+	var csOpts cowsayOpts
 
+	// inital url parsing
 	parsedUrl, err := url.Parse(req.URL.String())
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "error parsing URL string: ", err)
@@ -101,6 +89,7 @@ func cowsayRes(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintln(os.Stderr, "error parsing query parameters: ", err)
 	}
 
+	// list cowfiles
 	if _, ok := params["l"]; ok {
 		fmt.Fprintf(w, "%s\n\n", "avaliable cowfiles:")
 		for index, file := range getCowfiles() {
@@ -109,76 +98,61 @@ func cowsayRes(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// handle say string
 	if _, ok := params["s"]; ok {
-		say = url.QueryEscape(params.Get("s"))
+		sayParam := url.QueryEscape(params.Get("s"))
+		sayParam, err := url.QueryUnescape(csOpts.say)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "error decoding query for say param", err)
+		}
+		csOpts.say = sanitizeText(sayParam)
 	} else {
 		fortuneOut, err := exec.Command("fortune").Output()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error running fortune command %s\n", err)
 		}
-		say = string(fortuneOut)
+		csOpts.say = string(fortuneOut)
 	}
 
-	if _, ok := params["b"]; ok {
-		cowsayFlags += "-b "
-	}
-	if _, ok := params["d"]; ok {
-		cowsayFlags += "-d "
-	}
-	if _, ok := params["g"]; ok {
-		cowsayFlags += "-g "
-	}
-	if _, ok := params["p"]; ok {
-		cowsayFlags += "-p "
-	}
-	if _, ok := params["st"]; ok {
-		cowsayFlags += "-s "
-	}
-	if _, ok := params["t"]; ok {
-		cowsayFlags += "-t "
-	}
-	if _, ok := params["w"]; ok {
-		cowsayFlags += "-w "
-	}
-	if _, ok := params["y"]; ok {
-		cowsayFlags += "-y "
+	// handle generic switches and options
+	for _, opt := range cowsaySwitches {
+		if _, ok := params[opt]; ok {
+			csOpts.flags = csOpts.flags + "-" + opt + " "
+		}
 	}
 
-	cowfile = "default"
+	// handle cowfile
+	csOpts.cowfile = "default"
 	if _, ok := params["cf"]; ok {
-		cowfile = params.Get("cf")
+		csOpts.cowfile = params.Get("cf")
 	}
-	if _, ok := params["r"]; ok {
-		cowfile = getRandomCowfile()
-	}
-
-	if !checkCowfile(cowfile) {
+	if !checkCowfile(csOpts.cowfile) {
 		http.Error(w, "404 Error - Cowfile not found!\n", http.StatusNotFound)
 		return
 	}
-	cowfile = sanitizeText(cowfile)
-
-	unEscSay, err := url.QueryUnescape(say)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "error decoding query for say param", err)
+	if _, ok := params["r"]; ok {
+		csOpts.cowfile = getRandomCowfile()
 	}
-	unEscSay = sanitizeText(unEscSay)
+	csOpts.cowfile = sanitizeText(csOpts.cowfile)
 
-	var cowsayOut []byte
-	if cowsayFlags == "" {
-		cowsayOut, err = exec.Command("cowsay", "-f", cowfile, unEscSay).Output()
+	// exec cowsay
+	fmt.Fprintf(w, "%s\n", execCowsay(csOpts))
+}
+
+func execCowsay(csOpts cowsayOpts) []byte {
+	if csOpts.flags != "" {
+		cowsayOut, err := exec.Command("cowsay", csOpts.flags, csOpts.say).Output()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error running command %s\n", err)
-			http.Error(w, fmt.Sprintf("error running command %s", err), http.StatusInternalServerError)
+			fmt.Fprintf(os.Stderr, "error running cowsay %s\n", err)
 		}
+		return cowsayOut
 	} else {
-		cowsayOut, err = exec.Command("cowsay", "-f", cowfile, cowsayFlags, unEscSay).Output()
+		cowsayOut, err := exec.Command("cowsay", "-f", csOpts.cowfile, csOpts.say).Output()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error running command %s\n", err)
-			http.Error(w, fmt.Sprintf("error running command %s", err), http.StatusInternalServerError)
+			fmt.Fprintf(os.Stderr, "error running cowsay %s\n", err)
 		}
+		return cowsayOut
 	}
-	fmt.Fprintf(w, "%s\n", cowsayOut)
 }
 
 func checkCowfile(input string) bool {
@@ -243,4 +217,34 @@ func sanitizeText(input string) string {
 	badChars := regexp.MustCompile(`\&|\||\;`)
 
 	return badChars.ReplaceAllString(input, "")
+}
+
+func main() {
+	defaultPort := "8091"
+	defaultIp := ""
+	startupMsg := string(execCowsay(cowsayOpts{"", "small", "starting cowsay-http api server"}))
+
+	if ipEnv, ok := os.LookupEnv("IP"); ok {
+		defaultIp = ipEnv
+	}
+	if portEnv, ok := os.LookupEnv("PORT"); ok {
+		defaultPort = portEnv
+	}
+	ip := flag.String("ip", defaultIp, "ip for server to listen on (default is all)")
+	port := flag.String("port", defaultPort, "port for server to listen on")
+
+	flag.Parse()
+
+	currentTime := time.Now()
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", respHome)
+	mux.HandleFunc("/cowsay", cowsayRes)
+	mux.HandleFunc("/say", cowsayRes)
+	mux.HandleFunc("/cs", cowsayRes)
+
+	fmt.Println(startupMsg)
+	fmt.Println(currentTime.String())
+	fmt.Println("Listening on port", *ip+":"+*port)
+	log.Fatal(http.ListenAndServe(*ip+":"+*port, mux))
 }

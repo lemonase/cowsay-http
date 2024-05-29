@@ -7,21 +7,32 @@ like a web browser or curl.
 ## HTTP API
 
 ```
-GET /* -- This page (you are here!)
+GET /
 
 GET /cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters)
   URL PARAMS
-    s string -- Thing to say (defaults to fortune command)
-    cf string -- Specify a cowfile (add l param to list available cowfiles)
-    r bool -- Pick a random cowfile
-    l bool -- List all cowfiles available
+    s string  // Thing to say (defaults to fortune command)
+    cf string // Specify a cowfile (add l param to list available cowfiles)
+    r bool    // Pick a random cowfile
+    l bool    // List all cowfiles available
+    // Additional cows flags
+    b bool    // Cow appears bored
+    d bool    // Cow appears dead
+    g bool    // Cow appears greedy
+    p bool    // Cow appears paranoia
+    s bool    // Cow appears st0ned
+    t bool    // Cow appears tired
+    w bool    // Cow appears wired (not tired)
+    y bool    // Cow appears youthful
 
 ALIASES for /cowsay include
   /say
   /cs
 
 EXAMPLES:
+  cows.rest/cowsay
   cows.rest/cowsay?r
+  cows.rest/cowsay?d&s=0xDEADBEEF
   cows.rest/cs?s=moo%20world
 
 TIP:
