@@ -101,7 +101,7 @@ func cowsayRes(w http.ResponseWriter, req *http.Request) {
 	// handle say string
 	if _, ok := params["s"]; ok {
 		sayParam := url.QueryEscape(params.Get("s"))
-		sayParam, err := url.QueryUnescape(csOpts.say)
+		sayParam, err := url.QueryUnescape(sayParam)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "error decoding query for say param", err)
 		}
