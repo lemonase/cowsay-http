@@ -7,14 +7,14 @@ like a web browser or curl.
 ## HTTP API
 
 ```
-GET /
+GET / -- This page (you are here)
 
 GET /cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters)
   URL PARAMS
-    s string  // Thing to say (defaults to fortune command)
-    cf string // Specify a cowfile (add l param to list available cowfiles)
-    r bool    // Pick a random cowfile
-    l bool    // List all cowfiles available
+    say         string  // Thing to say (defaults to fortune command)
+    cowfile     string  // Specify a cowfile (add listCows param to list available cowfiles)
+    randomCow   bool    // Pick a random cowfile
+    listCows    bool    // List all cowfiles available
     // Additional cows flags
     b bool    // Cow appears bored
     d bool    // Cow appears dead
@@ -27,20 +27,21 @@ GET /cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters
 
 ALIASES for /cowsay include
   /say
+  /cow
   /cs
 
 EXAMPLES:
   cows.rest/cowsay
-  cows.rest/cowsay?r
-  cows.rest/cowsay?d&s=0xDEADBEEF
-  cows.rest/cs?s=moo%20world
+  cows.rest/cowsay?random
+  cows.rest/cowsay?d&say=0xDEADBEEF
+  cows.rest/cow?say=moo%20world
 
 TIP:
   # URL escape strings with perl or python:
   perl -nE 'use URI::Escape; chomp $_; print(uri_escape($_))' <<< "some long random text"
   python -c 'import urllib.parse; print(urllib.parse.quote(input()))' <<< "some long random text"
 
-  curl "cows.rest/cs?r&s=$(<url encoded string>)"
+  curl "cows.rest/cowsay?randomCow&say=some+long+random+text"
 
 GITHUB:
 https://github.com/lemonase/cowsay-http
@@ -72,7 +73,6 @@ go build -o cowsay-http
 
 cow{say,think} version 3.03, (c) 1999 Tony Monroe
 GPLv3 / Artistic License
-
 
 ## Misc
 
