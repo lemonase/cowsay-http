@@ -39,10 +39,10 @@ GET / -- This page (you are here)
 
 GET /cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters)
   URL PARAMS
-    s string  // Thing to say (defaults to fortune command)
-    cf string // Specify a cowfile (add l param to list available cowfiles)
-    r bool    // Pick a random cowfile
-    l bool    // List all cowfiles available
+    say         string  // Thing to say (defaults to fortune command)
+    cowfile     string  // Specify a cowfile (add listCows param to list available cowfiles)
+    randomCow   bool    // Pick a random cowfile
+    listCows    bool    // List all cowfiles available
     // Additional cows flags
     b bool    // Cow appears bored
     d bool    // Cow appears dead
@@ -55,20 +55,21 @@ GET /cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters
 
 ALIASES for /cowsay include
   /say
+  /cow
   /cs
 
 EXAMPLES:
   cows.rest/cowsay
-  cows.rest/cowsay?r
-  cows.rest/cowsay?d&s=0xDEADBEEF
-  cows.rest/cs?s=moo%20world
+  cows.rest/cowsay?random
+  cows.rest/cowsay?d&say=0xDEADBEEF
+  cows.rest/cow?say=moo%20world
 
 TIP:
   # URL escape strings with perl or python:
   perl -nE 'use URI::Escape; chomp $_; print(uri_escape($_))' <<< "some long random text"
   python -c 'import urllib.parse; print(urllib.parse.quote(input()))' <<< "some long random text"
 
-  curl "cows.rest/cs?r&s=$(<url encoded string>)"
+  curl "cows.rest/cowsay?randomCow&say=some+long+random+text"
 
 GITHUB:
 https://github.com/lemonase/cowsay-http
@@ -90,7 +91,7 @@ func cowsayRes(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// list cowfiles
-	if _, ok := params["l"]; ok {
+	if _, ok := params["listCows"]; ok {
 		fmt.Fprintf(w, "%s\n\n", "avaliable cowfiles:")
 		for index, file := range getCowfiles() {
 			fmt.Fprintf(w, "%d: %s\n", index, file)
@@ -99,8 +100,8 @@ func cowsayRes(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// handle say string
-	if _, ok := params["s"]; ok {
-		sayParam := url.QueryEscape(params.Get("s"))
+	if _, ok := params["say"]; ok {
+		sayParam := url.QueryEscape(params.Get("say"))
 		sayParam, err := url.QueryUnescape(sayParam)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "error decoding query for say param", err)
@@ -123,14 +124,14 @@ func cowsayRes(w http.ResponseWriter, req *http.Request) {
 
 	// handle cowfile
 	csOpts.cowfile = "default"
-	if _, ok := params["cf"]; ok {
-		csOpts.cowfile = params.Get("cf")
+	if _, ok := params["cowfile"]; ok {
+		csOpts.cowfile = params.Get("cowfile")
 	}
 	if !checkCowfile(csOpts.cowfile) {
 		http.Error(w, "404 Error - Cowfile not found!\n", http.StatusNotFound)
 		return
 	}
-	if _, ok := params["r"]; ok {
+	if _, ok := params["randomCow"]; ok {
 		csOpts.cowfile = getRandomCowfile()
 	}
 	csOpts.cowfile = sanitizeText(csOpts.cowfile)
@@ -240,6 +241,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", respHome)
 	mux.HandleFunc("/cowsay", cowsayRes)
+	mux.HandleFunc("/cow", cowsayRes)
 	mux.HandleFunc("/say", cowsayRes)
 	mux.HandleFunc("/cs", cowsayRes)
 
