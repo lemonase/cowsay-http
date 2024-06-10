@@ -35,33 +35,41 @@ type cowsayOpts struct {
 
 func respHome(w http.ResponseWriter, req *http.Request) {
 	homeHelpMsg := `Welcome to the cowsay HTTP API!
+
 GET / -- This page (you are here)
 
 GET /cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters)
-  URL PARAMS
-    say         string  // Thing to say (defaults to fortune command)
-    cowfile     string  // Specify a cowfile (add listCows param to list available cowfiles)
-    randomCow   bool    // Pick a random cowfile
-    listCows    bool    // List all cowfiles available
-    // Additional cows flags
-    b bool    // Cow appears bored
-    d bool    // Cow appears dead
-    g bool    // Cow appears greedy
-    p bool    // Cow appears paranoia
-    s bool    // Cow appears st0ned
-    t bool    // Cow appears tired
-    w bool    // Cow appears wired (not tired)
-    y bool    // Cow appears youthful
 
-ALIASES for /cowsay include
+  URL PARAMS
+    say                 string  // Thing to say (defaults to fortune command)
+    cowfile,cow,cf      string  // Specify a cowfile (add listCows param to list available cowfiles)
+    randomCow,random,r  bool    // Pick a random cowfile
+    listCows,list       bool    // List all cowfiles available
+
+    // Additional cows flags
+    b bool  // Cow appears borg mode
+    d bool  // Cow appears dead
+    g bool  // Cow appears greedy
+    p bool  // Cow appears paranoia
+    s bool  // Cow appears st0ned
+    t bool  // Cow appears tired
+    w bool  // Cow appears wired (not tired)
+    y bool  // Cow appears youthful
+
+ALIASES for /cowsay path:
   /say
   /cow
   /cs
 
+---
+
 EXAMPLES:
   cows.rest/cowsay
+  cows.rest/cs
   cows.rest/cowsay?random
+  cows.rest/cs?r
   cows.rest/cowsay?d&say=0xDEADBEEF
+  cows.rest/cs?d&say=0xDEADBEEF
   cows.rest/cow?say=moo%20world
 
 TIP:
@@ -69,7 +77,7 @@ TIP:
   perl -nE 'use URI::Escape; chomp $_; print(uri_escape($_))' <<< "some long random text"
   python -c 'import urllib.parse; print(urllib.parse.quote(input()))' <<< "some long random text"
 
-  curl "cows.rest/cowsay?randomCow&say=some+long+random+text"
+  curl "cows.rest/cowsay?random&say=some+long+random+text"
 
 GITHUB:
 https://github.com/lemonase/cowsay-http
@@ -79,6 +87,9 @@ https://github.com/lemonase/cowsay-http
 
 func cowsayRes(w http.ResponseWriter, req *http.Request) {
 	var csOpts cowsayOpts
+	listCows := false
+	isRandomCowfile := false
+	isParamSay := false
 
 	// inital url parsing
 	parsedUrl, err := url.Parse(req.URL.String())
@@ -92,27 +103,17 @@ func cowsayRes(w http.ResponseWriter, req *http.Request) {
 
 	// list cowfiles
 	if _, ok := params["listCows"]; ok {
+		listCows = true
+	}
+	if _, ok := params["list"]; ok {
+		listCows = true
+	}
+	if listCows {
 		fmt.Fprintf(w, "%s\n\n", "avaliable cowfiles:")
 		for index, file := range getCowfiles() {
 			fmt.Fprintf(w, "%d: %s\n", index, file)
 		}
 		return
-	}
-
-	// handle say string
-	if _, ok := params["say"]; ok {
-		sayParam := url.QueryEscape(params.Get("say"))
-		sayParam, err := url.QueryUnescape(sayParam)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "error decoding query for say param", err)
-		}
-		csOpts.say = sanitizeText(sayParam)
-	} else {
-		fortuneOut, err := exec.Command("fortune").Output()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error running fortune command %s\n", err)
-		}
-		csOpts.say = string(fortuneOut)
 	}
 
 	// handle generic switches and options
@@ -127,14 +128,53 @@ func cowsayRes(w http.ResponseWriter, req *http.Request) {
 	if _, ok := params["cowfile"]; ok {
 		csOpts.cowfile = params.Get("cowfile")
 	}
+	if _, ok := params["cow"]; ok {
+		csOpts.cowfile = params.Get("cow")
+	}
+	if _, ok := params["cf"]; ok {
+		csOpts.cowfile = params.Get("cf")
+	}
 	if !checkCowfile(csOpts.cowfile) {
 		http.Error(w, "404 Error - Cowfile not found!\n", http.StatusNotFound)
 		return
 	}
+
+	// random cowfile
 	if _, ok := params["randomCow"]; ok {
+		isRandomCowfile = true
+	}
+	if _, ok := params["random"]; ok {
+		isRandomCowfile = true
+	}
+	if _, ok := params["r"]; ok {
+		isRandomCowfile = true
+	}
+	if isRandomCowfile {
 		csOpts.cowfile = getRandomCowfile()
 	}
 	csOpts.cowfile = sanitizeText(csOpts.cowfile)
+
+	// handle say string
+	if _, ok := params["say"]; ok {
+		isParamSay = true
+	} else {
+		isParamSay = false
+	}
+
+	if isParamSay {
+		sayParam := url.QueryEscape(params.Get("say"))
+		sayParam, err := url.QueryUnescape(sayParam)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "error decoding query for say param", err)
+		}
+		csOpts.say = sanitizeText(sayParam)
+	} else {
+		fortuneOut, err := exec.Command("fortune").Output()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error running fortune command %s\n", err)
+		}
+		csOpts.say = string(fortuneOut)
+	}
 
 	// exec cowsay
 	fmt.Fprintf(w, "%s\n", execCowsay(csOpts))

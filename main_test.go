@@ -2,13 +2,83 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/exec"
 	"strings"
 	"testing"
 )
 
-// TODO: test http handlers
+func TestHTTPCowsayDeadbeef(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(cowsayRes))
+	resp, err := http.Get(server.URL + "/cowsay?d&say=0xDEADBEEF")
+	if err != nil {
+		t.Error(err)
+	}
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Error(err)
+	}
+
+	expected := ` ____________ 
+< 0xDEADBEEF >
+ ------------ 
+        \   ^__^
+         \  (xx)\_______
+            (__)\       )\/\
+             U  ||----w |
+                ||     ||
+
+`
+
+	if string(b) != expected {
+		t.Errorf("got cowsay: %s expected cowsay %s", string(b), string(expected))
+	}
+}
+
+func TestHTTPCowsayMoo(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(cowsayRes))
+	resp, err := http.Get(server.URL + "/cowsay?say=moo+world")
+	if err != nil {
+		t.Error(err)
+	}
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Error(err)
+	}
+
+	expected := ` ___________ 
+< moo world >
+ ----------- 
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+`
+
+	if string(b) != expected {
+		t.Errorf("got cowsay: %s expected cowsay %s", string(b), string(expected))
+	}
+
+}
+
+func TestHTTPServerOk(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(cowsayRes))
+	resp, err := http.Get(server.URL)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("did not recieve 200 status: %d", resp.StatusCode)
+	}
+}
 
 // Cowsay Tests
 
