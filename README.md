@@ -14,6 +14,7 @@ GET /cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters
     cowfile,cow,cf      string  // Specify a cowfile (add listCows param to list available cowfiles)
     randomCow,random,r  bool    // Pick a random cowfile
     listCows,list       bool    // List all cowfiles available
+    allCows,all         bool    // Get message with all cowfiles available
 
     // Additional cows flags
     b bool  // Cow appears borg mode
@@ -33,13 +34,21 @@ ALIASES for /cowsay path:
 ---
 
 EXAMPLES:
+  # random fortune + cowsay (classic)
   cows.rest/cowsay
   cows.rest/cs
+
+  # random fortune + random cow
   cows.rest/cowsay?random
   cows.rest/cs?r
+
+  # using misc query parameters
   cows.rest/cowsay?d&say=0xDEADBEEF
   cows.rest/cs?d&say=0xDEADBEEF
   cows.rest/cow?say=moo%20world
+
+  # get all cows
+  cows.rest/cs?all
 
 TIP:
   # URL escape strings with perl or python:
