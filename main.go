@@ -100,6 +100,7 @@ func cowsayRes(w http.ResponseWriter, req *http.Request) {
 	allCows := false
 	isRandomCowfile := false
 	isParamSay := false
+	csOpts.cowfile = "default"
 
 	// inital url parsing
 	parsedUrl, err := url.Parse(req.URL.String())
@@ -111,45 +112,37 @@ func cowsayRes(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintln(os.Stderr, "error parsing query parameters: ", err)
 	}
 
-	// list cowfiles
-	if _, ok := params["listCows"]; ok {
-		listCows = true
-	}
-	if _, ok := params["list"]; ok {
-		listCows = true
-	}
-	if listCows {
-		fmt.Fprintf(w, "%s\n\n", "avaliable cowfiles:")
-		for index, file := range getCowfiles() {
-			fmt.Fprintf(w, "%d: %s\n", index, file)
-		}
-		return
-	}
-
-	// show all cows
-	if _, ok := params["all"]; ok {
-		allCows = true
-	}
-	if _, ok := params["allCows"]; ok {
-		allCows = true
-	}
-
-	// handle generic switches and options
+	// processing URL parameters
+	// params that handle generic switches and options
 	for _, opt := range cowsaySwitches {
 		if _, ok := params[opt]; ok {
 			csOpts.flags = csOpts.flags + "-" + opt + " "
 		}
 	}
-
-	// handle cowfile
-	csOpts.cowfile = "default"
-	if _, ok := params["cowfile"]; ok {
+	// param to list all cowfiles
+	if params.Has("listCows") || params.Has("list") {
+		listCows = true
+	}
+	// param to get random cowfile
+	if params.Has("randomCow") || params.Has("random") || params.Has("r") {
+		isRandomCowfile = true
+	}
+	// param for say string
+	if params.Has("say") {
+		isParamSay = true
+	}
+	// param to run with all cowfiles
+	if params.Has("all") || params.Has("allCows") {
+		allCows = true
+	}
+	// param for cowfile
+	if params.Has("cowfile") {
 		csOpts.cowfile = params.Get("cowfile")
 	}
-	if _, ok := params["cow"]; ok {
+	if params.Has("cow") {
 		csOpts.cowfile = params.Get("cow")
 	}
-	if _, ok := params["cf"]; ok {
+	if params.Has("cf") {
 		csOpts.cowfile = params.Get("cf")
 	}
 	if !checkCowfile(csOpts.cowfile) {
@@ -157,27 +150,19 @@ func cowsayRes(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// random cowfile
-	if _, ok := params["randomCow"]; ok {
-		isRandomCowfile = true
-	}
-	if _, ok := params["random"]; ok {
-		isRandomCowfile = true
-	}
-	if _, ok := params["r"]; ok {
-		isRandomCowfile = true
+	// execute based on params
+	if listCows {
+		fmt.Fprintf(w, "%s\n\n", "avaliable cowfiles:")
+		for index, file := range getCowfiles() {
+			fmt.Fprintf(w, "%d: %s\n", index, file)
+		}
+		return
 	}
 	if isRandomCowfile {
 		csOpts.cowfile = getRandomCowfile()
 	}
 	csOpts.cowfile = sanitizeText(csOpts.cowfile)
-
-	// handle say string
-	if _, ok := params["say"]; ok {
-		isParamSay = true
-	} else {
-		isParamSay = false
-	}
+	fmt.Fprintln(os.Stderr, "error decoding query for say param", err)
 
 	if isParamSay {
 		sayParam := url.QueryEscape(params.Get("say"))
