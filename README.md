@@ -18,7 +18,7 @@ GET /api/cowsay -- Does 'fortune | cowsay' by default (customize with URL parame
     cowfile,cow,cf      string  // Specify a cowfile (add listCows param to list available cowfiles)
     randomCow,random,r  bool    // Pick a random cowfile
     listCows,list       bool    // List all cowfiles available
-    allCows,all                                 bool    // Get message with all cowfiles available
+    allCows,all         bool    // Get message with all cowfiles available
 
     // Additional cows flags
     b bool  // Cow appears borg mode
