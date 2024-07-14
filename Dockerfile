@@ -23,5 +23,6 @@ EOF
 WORKDIR /
 
 COPY --from=build-stage /cowsay-http /cowsay-http
+COPY pages/ ./pages/
 
 ENTRYPOINT ["/cowsay-http"]

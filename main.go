@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"html/template"
 	"io"
 	"log"
 	"math/rand"
@@ -33,8 +34,7 @@ type cowsayOpts struct {
 	say     string
 }
 
-func respHome(w http.ResponseWriter, req *http.Request) {
-	homeHelpMsg := `Welcome to the cowsay HTTP API!
+var homeHelpMsg string = `Welcome to the cowsay HTTP API!
 
 GET /api -- This page (you are here)
 
@@ -91,6 +91,8 @@ TIP:
 GITHUB:
 https://github.com/lemonase/cowsay-http
   `
+
+func respHomeApi(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "%s\n", homeHelpMsg)
 }
 
@@ -274,6 +276,7 @@ func main() {
 	defaultPort := "8091"
 	defaultIp := ""
 	startupMsg := string(execCowsay(cowsayOpts{"", "small", "starting cowsay-http api server"}))
+	currentTime := time.Now()
 
 	if ipEnv, ok := os.LookupEnv("IP"); ok {
 		defaultIp = ipEnv
@@ -283,17 +286,22 @@ func main() {
 	}
 	ip := flag.String("ip", defaultIp, "ip for server to listen on (default is all)")
 	port := flag.String("port", defaultPort, "port for server to listen on")
-
 	flag.Parse()
 
-	currentTime := time.Now()
-
 	mux := http.NewServeMux()
-	mux.HandleFunc("/api", respHome)
+
+	// API endpoints
+	mux.HandleFunc("/api", respHomeApi)
 	mux.HandleFunc("/api/cowsay", cowsayRes)
 	mux.HandleFunc("/api/cow", cowsayRes)
 	mux.HandleFunc("/api/say", cowsayRes)
 	mux.HandleFunc("/api/cs", cowsayRes)
+
+	// Templates
+	tmpl := template.Must(template.ParseFiles("pages/index.html"))
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		tmpl.Execute(w, "")
+	})
 
 	fmt.Println(startupMsg)
 	fmt.Println(currentTime.String())
