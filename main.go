@@ -36,9 +36,9 @@ type cowsayOpts struct {
 func respHome(w http.ResponseWriter, req *http.Request) {
 	homeHelpMsg := `Welcome to the cowsay HTTP API!
 
-GET / -- This page (you are here)
+GET /api -- This page (you are here)
 
-GET /cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters)
+GET /api/cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters)
 
   URL PARAMS
     say                 string  // Thing to say (defaults to fortune command)
@@ -57,36 +57,36 @@ GET /cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters
     w bool  // Cow appears wired (not tired)
     y bool  // Cow appears youthful
 
-ALIASES for /cowsay path:
-  /say
-  /cow
-  /cs
+ALIASES for /api/cowsay path:
+  /api/say
+  /api/cow
+  /api/cs
 
 ---
 
 EXAMPLES:
   # random fortune + cowsay (classic)
-  cows.rest/cowsay
-  cows.rest/cs
+  cows.rest/api/cowsay
+  cows.rest/api/cs
 
   # random fortune + random cow
-  cows.rest/cowsay?random
-  cows.rest/cs?r
+  cows.rest/api/cowsay?random
+  cows.rest/api/cs?r
 
   # using misc query parameters
-  cows.rest/cowsay?d&say=0xDEADBEEF
-  cows.rest/cs?d&say=0xDEADBEEF
-  cows.rest/cow?say=moo%20world
+  cows.rest/api/cowsay?d&say=0xDEADBEEF
+  cows.rest/api/cs?d&say=0xDEADBEEF
+  cows.rest/api/cow?say=moo%20world
 
   # get all cows
-  cows.rest/cs?all
+  cows.rest/api/cs?all
 
 TIP:
   # URL escape strings with perl or python:
   perl -nE 'use URI::Escape; chomp $_; print(uri_escape($_))' <<< "some long random text"
   python -c 'import urllib.parse; print(urllib.parse.quote(input()))' <<< "some long random text"
 
-  curl "cows.rest/cowsay?random&say=some+long+random+text"
+  curl "cows.rest/api/cowsay?random&say=some+long+random+text"
 
 GITHUB:
 https://github.com/lemonase/cowsay-http
@@ -162,7 +162,6 @@ func cowsayRes(w http.ResponseWriter, req *http.Request) {
 		csOpts.cowfile = getRandomCowfile()
 	}
 	csOpts.cowfile = sanitizeText(csOpts.cowfile)
-	fmt.Fprintln(os.Stderr, "error decoding query for say param", err)
 
 	if isParamSay {
 		sayParam := url.QueryEscape(params.Get("say"))
@@ -290,11 +289,11 @@ func main() {
 	currentTime := time.Now()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", respHome)
-	mux.HandleFunc("/cowsay", cowsayRes)
-	mux.HandleFunc("/cow", cowsayRes)
-	mux.HandleFunc("/say", cowsayRes)
-	mux.HandleFunc("/cs", cowsayRes)
+	mux.HandleFunc("/api", respHome)
+	mux.HandleFunc("/api/cowsay", cowsayRes)
+	mux.HandleFunc("/api/cow", cowsayRes)
+	mux.HandleFunc("/api/say", cowsayRes)
+	mux.HandleFunc("/api/cs", cowsayRes)
 
 	fmt.Println(startupMsg)
 	fmt.Println(currentTime.String())

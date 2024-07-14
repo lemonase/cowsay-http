@@ -7,14 +7,18 @@ like a web browser or curl.
 ## HTTP API
 
 ```
-GET /cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters)
+Welcome to the cowsay HTTP API!
+
+GET /api -- This page (you are here)
+
+GET /api/cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters)
 
   URL PARAMS
     say                 string  // Thing to say (defaults to fortune command)
     cowfile,cow,cf      string  // Specify a cowfile (add listCows param to list available cowfiles)
     randomCow,random,r  bool    // Pick a random cowfile
     listCows,list       bool    // List all cowfiles available
-    allCows,all         bool    // Get message with all cowfiles available
+    allCows,all                                 bool    // Get message with all cowfiles available
 
     // Additional cows flags
     b bool  // Cow appears borg mode
@@ -26,36 +30,36 @@ GET /cowsay -- Does 'fortune | cowsay' by default (customize with URL parameters
     w bool  // Cow appears wired (not tired)
     y bool  // Cow appears youthful
 
-ALIASES for /cowsay path:
-  /say
-  /cow
-  /cs
+ALIASES for /api/cowsay path:
+  /api/say
+  /api/cow
+  /api/cs
 
 ---
 
 EXAMPLES:
   # random fortune + cowsay (classic)
-  cows.rest/cowsay
-  cows.rest/cs
+  cows.rest/api/cowsay
+  cows.rest/api/cs
 
   # random fortune + random cow
-  cows.rest/cowsay?random
-  cows.rest/cs?r
+  cows.rest/api/cowsay?random
+  cows.rest/api/cs?r
 
   # using misc query parameters
-  cows.rest/cowsay?d&say=0xDEADBEEF
-  cows.rest/cs?d&say=0xDEADBEEF
-  cows.rest/cow?say=moo%20world
+  cows.rest/api/cowsay?d&say=0xDEADBEEF
+  cows.rest/api/cs?d&say=0xDEADBEEF
+  cows.rest/api/cow?say=moo%20world
 
   # get all cows
-  cows.rest/cs?all
+  cows.rest/api/cs?all
 
 TIP:
   # URL escape strings with perl or python:
   perl -nE 'use URI::Escape; chomp $_; print(uri_escape($_))' <<< "some long random text"
   python -c 'import urllib.parse; print(urllib.parse.quote(input()))' <<< "some long random text"
 
-  curl "cows.rest/cowsay?random&say=some+long+random+text"
+  curl "cows.rest/api/cowsay?random&say=some+long+random+text"
 
 GITHUB:
 https://github.com/lemonase/cowsay-http
