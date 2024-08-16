@@ -103,3 +103,4 @@ Other cowsay projects
 - [apjanke's fork of the classic cowsay project](https://github.com/cowsay-org/cowsay)
 - [cowsay-files](https://github.com/paulkaefer/cowsay-files)
 - [Neo-cowsay](https://github.com/Code-Hex/Neo-cowsay)
+- [cowsay-python](https://github.com/VaasuDevanS/cowsay-python)
