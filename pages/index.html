@@ -1,20 +1,182 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>cowsay on http</title>
 </head>
+
 <body>
-  <h2>
-    Cowsay HTTP API
-  </h2>
+  <h1><center>Cowsay HTTP API</center></h1>
+
+  <h2>Cowsay with Message :: <code>/api/say?s</code></h2>
+  <form method="get" action="/api/say">
+    <fieldset>
+      <label for="say">Message</label> <br>
+      <input type="text" id="say" name="say" /><br>
+
+      <br><br>
+      <b>Cowfiles</b> :: <code>cowsay -f</code>
+      <br>
+      <label><input type="checkbox" name="cowfile" value="actually" />actually</label>
+      <label><input type="checkbox" name="cowfile" value="alpaca" />alpaca</label>
+      <label><input type="checkbox" name="cowfile" value="beavis.zen" />beavis.zen</label>
+      <label><input type="checkbox" name="cowfile" value="blowfish" />blowfish</label>
+      <label><input type="checkbox" name="cowfile" value="bud-frogs" />bud-frogs</label>
+      <label><input type="checkbox" name="cowfile" value="bunny" />bunny</label>
+      <label><input type="checkbox" name="cowfile" value="cheese" />cheese</label>
+      <label><input type="checkbox" name="cowfile" value="cower" />cower</label>
+      <label><input type="checkbox" name="cowfile" value="cupcake" />cupcake</label>
+      <label><input type="checkbox" name="cowfile" value="default" />default</label>
+      <label><input type="checkbox" name="cowfile" value="dragon" />dragon</label>
+      <label><input type="checkbox" name="cowfile" value="dragon-and-cow" />dragon-and-cow</label>
+      <label><input type="checkbox" name="cowfile" value="elephant" />elephant</label>
+      <label><input type="checkbox" name="cowfile" value="elephant-in-snake" />elephant-in-snake</label>
+      <label><input type="checkbox" name="cowfile" value="eyes" />eyes</label>
+      <label><input type="checkbox" name="cowfile" value="flaming-sheep" />flaming-sheep</label>
+      <label><input type="checkbox" name="cowfile" value="fox" />fox</label>
+      <label><input type="checkbox" name="cowfile" value="ghostbusters" />ghostbusters</label>
+      <label><input type="checkbox" name="cowfile" value="hellokitty" />hellokitty</label>
+      <label><input type="checkbox" name="cowfile" value="kiss" />kiss</label>
+      <label><input type="checkbox" name="cowfile" value="kitty" />kitty</label>
+      <label><input type="checkbox" name="cowfile" value="koala" />koala</label>
+      <label><input type="checkbox" name="cowfile" value="kosh" />kosh</label>
+      <label><input type="checkbox" name="cowfile" value="llama" />llama</label>
+      <label><input type="checkbox" name="cowfile" value="luke-koala" />luke-koala</label>
+      <label><input type="checkbox" name="cowfile" value="mech-and-cow" />mech-and-cow</label>
+      <label><input type="checkbox" name="cowfile" value="meow" />meow</label>
+      <label><input type="checkbox" name="cowfile" value="milk" />milk</label>
+      <label><input type="checkbox" name="cowfile" value="moofasa" />moofasa</label>
+      <label><input type="checkbox" name="cowfile" value="moose" />moose</label>
+      <label><input type="checkbox" name="cowfile" value="ren" />ren</label>
+      <label><input type="checkbox" name="cowfile" value="sheep" />sheep</label>
+      <label><input type="checkbox" name="cowfile" value="skeleton" />skeleton</label>
+      <label><input type="checkbox" name="cowfile" value="small" />small</label>
+      <label><input type="checkbox" name="cowfile" value="stegosaurus" />stegosaurus</label>
+      <label><input type="checkbox" name="cowfile" value="stimpy" />stimpy</label>
+      <label><input type="checkbox" name="cowfile" value="supermilker" />supermilker</label>
+      <label><input type="checkbox" name="cowfile" value="surgery" />surgery</label>
+      <label><input type="checkbox" name="cowfile" value="sus" />sus</label>
+      <label><input type="checkbox" name="cowfile" value="three-eyes" />three-eyes</label>
+      <label><input type="checkbox" name="cowfile" value="turkey" />turkey</label>
+      <label><input type="checkbox" name="cowfile" value="turtle" />turtle</label>
+      <label><input type="checkbox" name="cowfile" value="tux" />tux</label>
+      <label><input type="checkbox" name="cowfile" value="udder" />udder</label>
+      <label><input type="checkbox" name="cowfile" value="vader" />vader</label>
+      <label><input type="checkbox" name="cowfile" value="vader-koala" />vader-koala</label>
+      <label><input type="checkbox" name="cowfile" value="www" />www</label>
+      <br>
+      <label><input type="checkbox" name="r" value="r" /> Random Cowfile</label>
+
+      <br><br>
+      <b>Eyes (overrides cowfile)</b> :: <code>cowsay -{b,d,g,p,s,t,w,y}</code>
+      <br>
+      <label><input type="checkbox" name="b" /> Borg Mode </label>
+      <label><input type="checkbox" name="d" /> Dead </label>
+      <label><input type="checkbox" name="g" /> Greedy </label>
+      <label><input type="checkbox" name="p" /> Paranoia </label>
+      <label><input type="checkbox" name="s" /> Stoned </label>
+      <label><input type="checkbox" name="t" /> Tired </label>
+      <label><input type="checkbox" name="w" /> Wired </label>
+      <label><input type="checkbox" name="y" /> Youthful </label>
+      <br>
+      <br>
+
+      <button> Get Cow </button>
+    </fieldset>
+  </form>
+  <br>
+  <br>
+
+  <h2> Cowsay with Random Fortune Message :: <code>/api/say</code></h2>
+  <form method="get" action="/api/say">
+    <fieldset>
+      <b>Cowfiles</b> :: <code>cowsay -f</code>
+      <br>
+      <label><input type="checkbox" name="cowfile" value="actually" />actually</label>
+      <label><input type="checkbox" name="cowfile" value="alpaca" />alpaca</label>
+      <label><input type="checkbox" name="cowfile" value="beavis.zen" />beavis.zen</label>
+      <label><input type="checkbox" name="cowfile" value="blowfish" />blowfish</label>
+      <label><input type="checkbox" name="cowfile" value="bud-frogs" />bud-frogs</label>
+      <label><input type="checkbox" name="cowfile" value="bunny" />bunny</label>
+      <label><input type="checkbox" name="cowfile" value="cheese" />cheese</label>
+      <label><input type="checkbox" name="cowfile" value="cower" />cower</label>
+      <label><input type="checkbox" name="cowfile" value="cupcake" />cupcake</label>
+      <label><input type="checkbox" name="cowfile" value="default" />default</label>
+      <label><input type="checkbox" name="cowfile" value="dragon" />dragon</label>
+      <label><input type="checkbox" name="cowfile" value="dragon-and-cow" />dragon-and-cow</label>
+      <label><input type="checkbox" name="cowfile" value="elephant" />elephant</label>
+      <label><input type="checkbox" name="cowfile" value="elephant-in-snake" />elephant-in-snake</label>
+      <label><input type="checkbox" name="cowfile" value="eyes" />eyes</label>
+      <label><input type="checkbox" name="cowfile" value="flaming-sheep" />flaming-sheep</label>
+      <label><input type="checkbox" name="cowfile" value="fox" />fox</label>
+      <label><input type="checkbox" name="cowfile" value="ghostbusters" />ghostbusters</label>
+      <label><input type="checkbox" name="cowfile" value="hellokitty" />hellokitty</label>
+      <label><input type="checkbox" name="cowfile" value="kiss" />kiss</label>
+      <label><input type="checkbox" name="cowfile" value="kitty" />kitty</label>
+      <label><input type="checkbox" name="cowfile" value="koala" />koala</label>
+      <label><input type="checkbox" name="cowfile" value="kosh" />kosh</label>
+      <label><input type="checkbox" name="cowfile" value="llama" />llama</label>
+      <label><input type="checkbox" name="cowfile" value="luke-koala" />luke-koala</label>
+      <label><input type="checkbox" name="cowfile" value="mech-and-cow" />mech-and-cow</label>
+      <label><input type="checkbox" name="cowfile" value="meow" />meow</label>
+      <label><input type="checkbox" name="cowfile" value="milk" />milk</label>
+      <label><input type="checkbox" name="cowfile" value="moofasa" />moofasa</label>
+      <label><input type="checkbox" name="cowfile" value="moose" />moose</label>
+      <label><input type="checkbox" name="cowfile" value="ren" />ren</label>
+      <label><input type="checkbox" name="cowfile" value="sheep" />sheep</label>
+      <label><input type="checkbox" name="cowfile" value="skeleton" />skeleton</label>
+      <label><input type="checkbox" name="cowfile" value="small" />small</label>
+      <label><input type="checkbox" name="cowfile" value="stegosaurus" />stegosaurus</label>
+      <label><input type="checkbox" name="cowfile" value="stimpy" />stimpy</label>
+      <label><input type="checkbox" name="cowfile" value="supermilker" />supermilker</label>
+      <label><input type="checkbox" name="cowfile" value="surgery" />surgery</label>
+      <label><input type="checkbox" name="cowfile" value="sus" />sus</label>
+      <label><input type="checkbox" name="cowfile" value="three-eyes" />three-eyes</label>
+      <label><input type="checkbox" name="cowfile" value="turkey" />turkey</label>
+      <label><input type="checkbox" name="cowfile" value="turtle" />turtle</label>
+      <label><input type="checkbox" name="cowfile" value="tux" />tux</label>
+      <label><input type="checkbox" name="cowfile" value="udder" />udder</label>
+      <label><input type="checkbox" name="cowfile" value="vader" />vader</label>
+      <label><input type="checkbox" name="cowfile" value="vader-koala" />vader-koala</label>
+      <label><input type="checkbox" name="cowfile" value="www" />www</label>
+      <br>
+      <label><input type="checkbox" name="r" value="r" /> Random Cowfile</label>
+
+      <br><br>
+      <b>Eyes (overrides cowfile)</b> :: <code>cowsay -{b,d,g,p,s,t,w,y}</code>
+      <br>
+      <label><input type="checkbox" name="b" /> Borg Mode </label>
+      <label><input type="checkbox" name="d" /> Dead </label>
+      <label><input type="checkbox" name="g" /> Greedy </label>
+      <label><input type="checkbox" name="p" /> Paranoia </label>
+      <label><input type="checkbox" name="s" /> Stoned </label>
+      <label><input type="checkbox" name="t" /> Tired </label>
+      <label><input type="checkbox" name="w" /> Wired </label>
+      <label><input type="checkbox" name="y" /> Youthful </label>
+      <br>
+      <br>
+
+      <button> Get Fortune </button>
+    </fieldset>
+  </form>
+
+  <h2>Octocat (Github Flavored Cow) :: <code>https://api.github.com/octocat?s</code></h2>
+  <form method="get" action="https://api.github.com/octocat?s">
+    <fieldset>
+      <label for="say">Message</label> <br>
+      <input type="text" id="say" name="s" /><br>
+			<br>
+      <button> Get Octocow </button>
+    </fieldset>
+  </form>
 
   <h3>Endpoints</h3>
   <p>
-    <li>Help Page: <a href="/api">/api</a></li>
-    <li>fortune | cowsay: <a href="/api/cowsay">/api/cowsay</a></li>
+    <li>API Usage: <a href="/api">/api</a></li>
   </p>
-
-  <footer><a href="https://github.com/lemonase/cowsay-http">On Github</a></footer>
+  <br>
+  <footer>cowsay-http on <a href="https://github.com/lemonase/cowsay-http">Github</a></footer>
 </body>
+
 </html>
