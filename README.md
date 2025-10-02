@@ -78,6 +78,8 @@ You can use Docker or run and build locally with Go
 docker run -p 8091:8091 ghcr.io/lemonase/cowsay-http:master
 ```
 
+[![Docker](https://github.com/lemonase/cowsay-http/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/lemonase/cowsay-http/actions/workflows/docker-publish.yml)
+
 ### Go
 
 ```
