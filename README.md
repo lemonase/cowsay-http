@@ -6,6 +6,8 @@ like a web browser or curl.
 
 ## HTTP API
 
+Currently hosted at [cowsay.online](http://cowsay.online/)
+
 ```
 Welcome to the cowsay HTTP API!
 
@@ -39,33 +41,33 @@ ALIASES for /api/cowsay path:
 
 EXAMPLES:
   # random fortune + cowsay (classic)
-  cows.rest/api/cowsay
-  cows.rest/api/cs
+  cowsay.online/api/cowsay
+  cowsay.online/api/cs
 
   # random fortune + random cow
-  cows.rest/api/cowsay?random
-  cows.rest/api/cs?r
+  cowsay.online/api/cowsay?random
+  cowsay.online/api/cs?r
 
   # using misc query parameters
-  cows.rest/api/cowsay?d&say=0xDEADBEEF
-  cows.rest/api/cs?d&say=0xDEADBEEF
-  cows.rest/api/cow?say=moo%20world
+  cowsay.online/api/cowsay?d&say=0xDEADBEEF
+  cowsay.online/api/cs?d&say=0xDEADBEEF
+  cowsay.online/api/cow?say=moo%20world
 
   # get all cows
-  cows.rest/api/cs?all
+  cowsay.online/api/cs?all
 
 TIP:
   # URL escape strings with perl or python:
   perl -nE 'use URI::Escape; chomp $_; print(uri_escape($_))' <<< "some long random text"
   python -c 'import urllib.parse; print(urllib.parse.quote(input()))' <<< "some long random text"
 
-  curl "cows.rest/api/cowsay?random&say=some+long+random+text"
+  curl "cowsay.online/api/cowsay?random&say=some+long+random+text"
 
 GITHUB:
 https://github.com/lemonase/cowsay-http
 ```
 
-It is not technically a REST API, but I already registered the domain `cows.rest`
+It is not technically a REST API, but I already registered the domain `cowsay.online`
 for the cheap so we are running with that.
 
 ## Running
